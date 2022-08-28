@@ -360,7 +360,7 @@ var tools = {
 				showError(data);
 			}
 			else {
-				showInfo("Save complite!");
+				showInfo("Save complete!");
 			}
 		});
 	},
@@ -371,7 +371,7 @@ var tools = {
 				showError(data);
 			}
 			else {
-				showInfo("Load complite!");
+				showInfo("Load complete!");
 				rules.showList(channel, table);
 			}
 		});
@@ -429,6 +429,33 @@ var tools = {
                         });
 						$(".settings").dialog("close");
 						
+						rules.showList(channel, table);
+					}
+				}
+			]
+		});
+	},
+
+	portForwardingDlg: function() {
+		$("div#addPortForwarding").dialog({
+			title:"Port Forwarding",
+			modal:true,
+			resizable:false,
+			width: 400,
+			buttons: [
+				{
+					text: "Add",
+					click: function() {
+						var _settings = {};
+                        $(".param").each(function(index, obj){
+                        	_settings[obj.id] = $(obj).val();
+                        });
+                        $.post("/forwarding", {data: JSON.stringify(_settings)}, function(data) {
+                            if(data) {
+                                showError(data);
+                            }
+                        });
+						$("div#addPortForwarding").dialog("close");
 						rules.showList(channel, table);
 					}
 				}

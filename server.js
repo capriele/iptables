@@ -16,6 +16,7 @@ handles["/chainlist"] = handle.chainList;
 handles["/login"] = handle.authMe;
 handles["/logout"] = handle.logout;
 handles["/users"] = handle.userList;
+handles["/forwarding"] = handle.addPortForwarding;
 
 http.createServer(function handler(req, res) {
     var pathname = url.parse(req.url).pathname;

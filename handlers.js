@@ -150,10 +150,54 @@ module.exports = {
 	},
     
     save: function(req, res) {
-        proc.exec("iptables-save > " + module.exports._settings.savePath, function(error, stdout, stderr) {
-
+        proc.exec("iptables-save > /etc/iptables/rules.v4", function(error, stdout, stderr) {
 			res.end(stderr);
 		});
+		proc.exec("iptables-save > /etc/iptables/rules.v6", function(error, stdout, stderr) {
+            res.end(stderr);
+        });
+    },
+
+    addPortForwarding: function(req, res) {
+		var body = '';
+	    req.on('data', function (data) {
+	        body += data;
+	    });
+	    req.on('end', function () {
+	        var post = querystring.parse(body);
+			var data = post['data']; 
+            var json = JSON.parse(data);
+	        var source_port = json['source_port'];
+	        var destination_ip = json['destination_ip'];
+	        var destination_port = json['destination_port'];
+	        //console.log(source_port + " -> " + destination_ip + ":" + destination_port);
+
+			var rule1 = "-A FORWARD -j ACCEPT";
+			var rule2 = "-t nat -A PREROUTING -p tcp -m tcp --dport "+source_port+" -j DNAT --to-destination "+destination_ip+":"+destination_port;
+			var rule3 = "-t nat -A POSTROUTING -d "+destination_ip+"/32 -j MASQUERADE";
+	    	proc.exec("iptables " + rule3, function(error, stdout, stderr) {
+	    		if(stderr) {
+	    			res.end(stderr);
+	    		}
+	    		else {
+					proc.exec("iptables " + rule2, function(error, stdout, stderr) {
+						if(stderr) {
+							res.end(stderr);
+						}
+						else {
+							proc.exec("iptables " + rule1, function(error, stdout, stderr) {
+								if(stderr) {
+									res.end(stderr);
+								}
+								else {
+									module.exports.save(req, res);
+								}
+							});
+						}
+					});
+	    		}
+	    	});
+	    });
     },
     
     load: function(req, res) {
